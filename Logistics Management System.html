@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Logistics Management System</title>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.umd.js"></script>
+<style>
+:root{--bg:#f4f7fb;--card:#fff;--ink:#0f1b33;--mut:#64748b;--line:#e2e8f0;--nav:#0b1a3a;--acc:#2563eb;--soft:#eff6ff;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0a1226;--card:#101c3a;--ink:#e6edf9;--mut:#94a3b8;--line:#1e2d52;--nav:#070f24;--soft:#16254a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0a1226;--card:#101c3a;--ink:#e6edf9;--mut:#94a3b8;--line:#1e2d52;--nav:#070f24;--soft:#16254a;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;transition:transform .2s,box-shadow .2s}
+.hov:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(37,99,235,.15)}
+.btn{display:inline-flex;align-items:center;gap:6px;background:var(--acc);color:#fff;border:0;border-radius:9px;padding:9px 14px;font-weight:600;font-size:14px;cursor:pointer;transition:filter .15s,transform .15s}
+.btn:hover{filter:brightness(1.12);transform:translateY(-1px)}
+.btn.g{background:var(--soft);color:var(--acc)}.btn.r{background:#ef4444}
+.inp{width:100%;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-size:14px;outline:none}
+.inp:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(37,99,235,.2)}
+.lbl{font-size:12px;color:var(--mut);font-weight:600;margin-bottom:4px;display:block}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;color:var(--mut);font-size:12px;font-weight:600;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:11px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+tbody tr{transition:background .15s}tbody tr:hover{background:var(--soft)}
+.bd{padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600}
+.nv{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;color:#a9b8d8;text-decoration:none;font-size:14px;font-weight:500;transition:all .15s}
+.nv:hover{background:rgba(255,255,255,.07);color:#fff}.nv.on{background:var(--acc);color:#fff}
+.side{background:var(--nav);transition:transform .25s}
+.fade{animation:f .35s ease both}@keyframes f{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.bar{transition:height .6s ease}
+.ov{position:fixed;inset:0;background:rgba(5,10,25,.55);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px}
+</style></head>
+<body><div id="root"></div>
+<script>
+const {useState,useEffect,useMemo}=React;const html=htm.bind(React.createElement);
+const mk=(ks,rs)=>rs.map(r=>Object.fromEntries(ks.map((k,i)=>[k,r[i]])));
+const SEED={
+ship:mk(['id','customer','origin','dest','shipDate','eta','status','loc'],[
+['SHP-1001','Northwind Traders','Singapore','Phnom Penh','2026-11-14','2026-11-22','In Transit','Ho Chi Minh City Hub'],
+['SHP-1002','Acme Retail','Bangkok','Siem Reap','2026-11-10','2026-11-18','Delivered','Siem Reap Depot'],
+['SHP-1003','Globex Corp','Shenzhen','Sihanoukville','2026-11-18','2026-11-27','Pending','Shenzhen Warehouse'],
+['SHP-1004','Initech','Hanoi','Phnom Penh','2026-11-12','2026-11-21','In Transit','Bavet Border Checkpoint'],
+['SHP-1005','Umbrella Foods','Phnom Penh','Battambang','2026-11-08','2026-11-15','Delivered','Battambang Depot'],
+['SHP-1006','Stark Supplies','Kuala Lumpur','Phnom Penh','2026-11-16','2026-11-24','Cancelled','Kuala Lumpur Hub'],
+['SHP-1007','Wayne Logistics','Phnom Penh','Kampot','2026-11-19','2026-11-23','Pending','Phnom Penh Central WH'],
+['SHP-1008','Soylent Co.','Jakarta','Phnom Penh','2026-11-13','2026-11-25','In Transit','Laem Chabang Port']]),
+orders:mk(['id','customer','email','product','qty','total','pay','status'],[
+['ORD-2001','Northwind Traders','ops@northwind.com','Pallet Jacks',12,4800,'Paid','Shipped'],
+['ORD-2002','Acme Retail','buy@acme.co','Packaging Film',200,3200,'Paid','Delivered'],
+['ORD-2003','Globex Corp','supply@globex.com','LED Panels',80,9600,'Unpaid','Processing'],
+['ORD-2004','Initech','it@initech.com','Barcode Scanners',30,5400,'Paid','Shipped'],
+['ORD-2005','Umbrella Foods','po@umbrella.io','Cold Storage Boxes',150,2250,'Refunded','Cancelled'],
+['ORD-2006','Wayne Logistics','fleet@wayne.com','Forklift Batteries',6,7800,'Unpaid','Processing']]),
+fleet:mk(['id','type','plate','driver','status','maint'],[
+['VH-3001','Box Truck','PP-2A-4471','Sokha Chan','On Route','Good'],
+['VH-3002','Cargo Van','PP-1B-9032','Dara Kim','Available','Good'],
+['VH-3003','Semi Trailer','PP-3C-1180','Vannak Sok','On Route','Service Due'],
+['VH-3004','Pickup','SR-4D-7755','Sreymom Lim','Maintenance','In Service'],
+['VH-3005','Refrigerated Truck','PP-5E-2208','Rithy Heng','Available','Good']]),
+drivers:mk(['id','name','phone','vehicle','delivery','avail'],[
+['DRV-4001','Sokha Chan','+855 12 345 678','VH-3001','Delivering','On Trip'],
+['DRV-4002','Dara Kim','+855 96 222 018','VH-3002','Idle','Available'],
+['DRV-4003','Vannak Sok','+855 77 410 903','VH-3003','Delivering','On Trip'],
+['DRV-4004','Sreymom Lim','+855 15 880 124','VH-3004','Idle','Off Duty'],
+['DRV-4005','Rithy Heng','+855 92 641 750','VH-3005','Completed','Available']]),
+wh:mk(['id','name','loc','products','stock','incoming','outgoing'],[
+['WH-5001','Phnom Penh Central','Phnom Penh',12400,9800,34,52],
+['WH-5002','Sihanoukville Port','Sihanoukville',20800,15300,61,48],
+['WH-5003','Siem Reap Depot','Siem Reap',6200,4100,12,19],
+['WH-5004','Battambang Hub','Battambang',5100,3900,9,14]]),
+cust:mk(['id','name','email','phone','address','orders'],[
+['CUS-6001','Northwind Traders','ops@northwind.com','+855 23 100 200','12 Norodom Blvd, Phnom Penh',24],
+['CUS-6002','Acme Retail','buy@acme.co','+855 63 220 310','88 Sivutha St, Siem Reap',17],
+['CUS-6003','Globex Corp','supply@globex.com','+855 34 551 009','5 Ouknha Hing, Sihanoukville',9],
+['CUS-6004','Initech','it@initech.com','+855 23 777 412','301 Monivong Blvd, Phnom Penh',31],
+['CUS-6005','Umbrella Foods','po@umbrella.io','+855 53 400 118','17 NR5, Battambang',12],
+['CUS-6006','Wayne Logistics','fleet@wayne.com','+855 12 998 123','9 Kampot Riverside, Kampot',6]]),
+set:{name:'Alex Morgan',email:'alex@logisticsms.com',role:'Operations Manager',company:'TransAsia Freight Co.',addr:'45 Preah Sihanouk Blvd, Phnom Penh',tax:'KH-100234',n1:true,n2:true,n3:false,n4:true,theme:'auto'}};
+const useStore=k=>{const [v,s]=useState(()=>{try{const x=localStorage.getItem('lms_'+k);if(x)return JSON.parse(x)}catch(e){}return SEED[k]});
+ return [v,n=>{s(n);try{localStorage.setItem('lms_'+k,JSON.stringify(n))}catch(e){}}]};
+const P={d:'M3 3h7v9H3zM14 3h7v5h-7zM14 12h7v9h-7zM3 16h7v5H3z',box:'M21 8l-9-5-9 5v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',pin:'M12 21s7-6 7-11a7 7 0 10-14 0c0 5 7 11 7 11zM12 8v4M12 8h.01',cart:'M3 4h2l2 11h11l2-8H6M9 20h.01M17 20h.01',truck:'M1 6h13v10H1zM14 10h5l3 3v3h-8zM6 19h.01M18 19h.01',user:'M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z',wh:'M3 10l9-6 9 6v10H3zM9 20v-6h6v6',users:'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.9M16 3.1a4 4 0 010 7.8',chart:'M3 3v18h18M7 15l4-4 3 3 5-6',gear:'M12 15a3 3 0 100-6 3 3 0 000 6zM19 12l2-1.5-2-3.4-2.3.9-1.7-1L14.5 3h-4l-.4 2.5-1.7 1-2.3-.9-2 3.4L5 12l-2 1.5 2 3.4 2.3-.9 1.7 1 .4 2.5h4l.4-2.5 1.7-1 2.3.9 2-3.4z',plus:'M12 5v14M5 12h14',edit:'M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z',trash:'M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14',search:'M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.3-4.3',menu:'M3 6h18M3 12h18M3 18h18',x:'M18 6L6 18M6 6l12 12',dl:'M12 3v12M7 10l5 5 5-5M4 21h16',bell:'M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9M10 21h4',check:'M5 12l5 5L20 7',dollar:'M12 2v20M17 6H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6'};
+const I=({n,s=18})=>html`<svg width=${s} height=${s} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d=${P[n]}/></svg>`;
+const TONE={green:['Delivered','Paid','Available','Good','Completed','Active'],blue:['In Transit','On Route','Shipped','On Trip','Delivering'],amber:['Pending','Processing','Service Due','In Service','Maintenance','Unpaid','Idle'],red:['Cancelled','Refunded','Off Duty']};
+const COL={green:['#dcfce7','#15803d'],blue:['#dbeafe','#1d4ed8'],amber:['#fef3c7','#b45309'],red:['#fee2e2','#b91c1c']};
+const Badge=({v})=>{const t=Object.keys(TONE).find(k=>TONE[k].includes(v))||'blue',c=COL[t];return html`<span class="bd" style=${{background:c[0],color:c[1]}}>${v}</span>`};
+const money=n=>'$'+Number(n).toLocaleString();
+const fd=s=>new Date(s+'T00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+const MO=['Jun','Jul','Aug','Sep','Oct','Nov'],SH=[320,360,410,390,450,480],RV=[48,54,61,58,69,74],OT=[91,92,90,94,95,96];
+
+const Area=({d,l})=>{const m=Math.max(...d)*1.1,pt=d.map((v,i)=>[i*(300/(d.length-1)),120-v/m*110]),ln=pt.map(p=>p.join(',')).join(' ');
+ return html`<div><svg viewBox="0 0 300 120" preserveAspectRatio="none" class="w-full" style=${{height:180}}><defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2563eb" stop-opacity=".35"/><stop offset="1" stop-color="#2563eb" stop-opacity="0"/></linearGradient></defs><polygon points=${'0,120 '+ln+' 300,120'} fill="url(#ag)"/><polyline points=${ln} fill="none" stroke="#2563eb" stroke-width="2.5" vector-effect="non-scaling-stroke"/></svg>
+ <div class="flex justify-between text-xs mt-1" style=${{color:'var(--mut)'}}>${l.map(x=>html`<span key=${x}>${x}</span>`)}</div></div>`};
+const Bars=({d,l,u=''})=>{const m=Math.max(...d);return html`<div class="flex items-end gap-2 sm:gap-3" style=${{height:180}}>${d.map((v,i)=>html`<div key=${i} class="flex-1 flex flex-col items-center justify-end h-full" title=${v+u}><span class="text-xs mb-1" style=${{color:'var(--mut)'}}>${v}${u}</span><div class="bar w-full rounded-t-md" style=${{height:(v/m*80)+'%',background:i===d.length-1?'#2563eb':'#60a5fa'}}></div><span class="text-xs mt-1" style=${{color:'var(--mut)'}}>${l[i]}</span></div>`)}</div>`};
+const Donut=({parts})=>{const t=parts.reduce((a,p)=>a+p.v,0)||1;let o=25;return html`<div class="flex items-center gap-4 flex-wrap justify-center"><svg viewBox="0 0 36 36" width="140" height="140"><circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--line)" stroke-width="4"/>${parts.map(p=>{const pc=p.v/t*100,e=html`<circle key=${p.n} cx="18" cy="18" r="15.9" fill="none" stroke=${p.c} stroke-width="4" stroke-dasharray=${pc+' '+(100-pc)} stroke-dashoffset=${o}/>`;o-=pc;return e})}</svg>
+ <div class="text-sm space-y-1">${parts.map(p=>html`<div key=${p.n} class="flex items-center gap-2"><span style=${{background:p.c,width:10,height:10,borderRadius:3,display:'inline-block'}}></span>${p.n}<b class="ml-auto pl-3">${p.v}</b></div>`)}</div></div>`};
+const Head=({t,s,children})=>html`<div class="flex flex-wrap items-center justify-between gap-3 mb-5"><div><h1 class="text-2xl font-bold">${t}</h1><p class="text-sm" style=${{color:'var(--mut)'}}>${s}</p></div><div class="flex gap-2">${children}</div></div>`;
+const Modal=({t,onClose,children})=>html`<div class="ov" onClick=${onClose}><div class="card fade w-full" style=${{maxWidth:520,maxHeight:'90vh',overflow:'auto'}} onClick=${e=>e.stopPropagation()}><div class="flex justify-between items-center mb-4"><h3 class="font-bold text-lg">${t}</h3><button onClick=${onClose} style=${{color:'var(--mut)'}}><${I} n="x"/></button></div>${children}</div></div>`;
+
+function Crud({k,title,sub,cols,fields,filter,prefix,add}){
+ const [rows,setRows]=useStore(k),[q,setQ]=useState(''),[f,setF]=useState('All'),[m,setM]=useState(null),[del,setDel]=useState(null);
+ const list=rows.filter(r=>(f==='All'||r[filter]===f)&&JSON.stringify(r).toLowerCase().includes(q.toLowerCase()));
+ const save=e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.target));fields.filter(x=>x.t==='number').forEach(x=>d[x.k]=+d[x.k]);
+  if(m.id)setRows(rows.map(r=>r.id===m.id?{...r,...d}:r));else{const n=Math.max(1000,...rows.map(r=>+r.id.split('-')[1]||0))+1;setRows([{id:prefix+'-'+n,...d},...rows])}setM(null)};
+ return html`<div class="fade"><${Head} t=${title} s=${sub}><button class="btn" onClick=${()=>setM({})}><${I} n="plus"/> ${add}</button><//>
+ <div class="card"><div class="flex flex-wrap gap-3 mb-4"><div class="relative flex-1" style=${{minWidth:200}}><span class="absolute" style=${{left:10,top:10,color:'var(--mut)'}}><${I} n="search" s=${16}/></span><input class="inp" style=${{paddingLeft:34}} placeholder="Search..." value=${q} onInput=${e=>setQ(e.target.value)}/></div>
+ ${filter&&html`<select class="inp" style=${{width:'auto'}} value=${f} onChange=${e=>setF(e.target.value)}>${['All',...fields.find(x=>x.k===filter).o].map(o=>html`<option key=${o}>${o}</option>`)}</select>`}</div>
+ <div class="overflow-x-auto"><table><thead><tr>${cols.map(c=>html`<th key=${c[0]}>${c[1]}</th>`)}<th>Actions</th></tr></thead><tbody>
+ ${list.map(r=>html`<tr key=${r.id}>${cols.map(c=>html`<td key=${c[0]}>${c[2]==='b'?html`<${Badge} v=${r[c[0]]}/>`:c[2]==='$'?money(r[c[0]]):c[2]==='d'?fd(r[c[0]]):c[2]==='n'?Number(r[c[0]]).toLocaleString():c[0]==='id'?html`<b style=${{color:'var(--acc)'}}>${r.id}</b>`:r[c[0]]}</td>`)}
+ <td><div class="flex gap-1"><button class="btn g" style=${{padding:'6px 8px'}} title="Edit" onClick=${()=>setM(r)}><${I} n="edit" s=${15}/></button><button class="btn g" style=${{padding:'6px 8px',color:'#ef4444'}} title="Delete" onClick=${()=>setDel(r)}><${I} n="trash" s=${15}/></button></div></td></tr>`)}</tbody></table>
+ ${!list.length&&html`<p class="text-center py-8 text-sm" style=${{color:'var(--mut)'}}>No records found.</p>`}</div>
+ <p class="text-xs mt-3" style=${{color:'var(--mut)'}}>${list.length} of ${rows.length} records · saved in your browser</p></div>
+ ${m&&html`<${Modal} t=${m.id?'Edit '+m.id:add} onClose=${()=>setM(null)}><form onSubmit=${save} class="grid grid-cols-1 sm:grid-cols-2 gap-3">${fields.map(x=>html`<div key=${x.k} class=${x.w?'sm:col-span-2':''}><label class="lbl">${x.l}</label>${x.o?html`<select class="inp" name=${x.k} defaultValue=${m[x.k]||x.o[0]}>${x.o.map(o=>html`<option key=${o}>${o}</option>`)}</select>`:html`<input class="inp" name=${x.k} type=${x.t||'text'} defaultValue=${m[x.k]} required/>`}</div>`)}
+ <div class="sm:col-span-2 flex justify-end gap-2 mt-2"><button type="button" class="btn g" onClick=${()=>setM(null)}>Cancel</button><button class="btn">Save</button></div></form><//>`}
+ ${del&&html`<${Modal} t="Delete record?" onClose=${()=>setDel(null)}><p class="text-sm mb-4" style=${{color:'var(--mut)'}}>${del.id} will be permanently removed from this demo.</p><div class="flex justify-end gap-2"><button class="btn g" onClick=${()=>setDel(null)}>Cancel</button><button class="btn r" onClick=${()=>{setRows(rows.filter(r=>r.id!==del.id));setDel(null)}}>Delete</button></div><//>`}</div>`}
+
+const T=(k,l,t)=>({k,l,t}),F=(k,l,o,t,w)=>({k,l,o,t,w});
+const CFG={
+shipments:{k:'ship',title:'Shipment Management',sub:'Create, edit and monitor every shipment.',prefix:'SHP',add:'Add New Shipment',filter:'status',
+ cols:[['id','Shipment ID'],['customer','Customer'],['origin','Origin'],['dest','Destination'],['shipDate','Shipping Date','d'],['eta','Est. Delivery','d'],['status','Status','b']],
+ fields:[F('customer','Customer Name'),F('origin','Origin'),F('dest','Destination'),F('shipDate','Shipping Date',0,'date'),F('eta','Estimated Delivery',0,'date'),F('status','Status',['Pending','In Transit','Delivered','Cancelled']),F('loc','Current Location',0,0,1)]},
+orders:{k:'orders',title:'Orders Management',sub:'Customer orders, payments and fulfilment.',prefix:'ORD',add:'Add Order',filter:'status',
+ cols:[['id','Order ID'],['customer','Customer'],['email','Email'],['product','Product'],['qty','Qty','n'],['total','Total','$'],['pay','Payment','b'],['status','Order Status','b']],
+ fields:[F('customer','Customer Name'),F('email','Customer Email',0,'email'),F('product','Product Name'),F('qty','Quantity',0,'number'),F('total','Total Price ($)',0,'number'),F('pay','Payment Status',['Paid','Unpaid','Refunded']),F('status','Order Status',['Processing','Shipped','Delivered','Cancelled'])]},
+fleet:{k:'fleet',title:'Fleet Management',sub:'Vehicles, assignments and maintenance.',prefix:'VH',add:'Add Vehicle',filter:'status',
+ cols:[['id','Vehicle ID'],['type','Type'],['plate','License Plate'],['driver','Driver'],['status','Status','b'],['maint','Maintenance','b']],
+ fields:[F('type','Vehicle Type',['Box Truck','Cargo Van','Semi Trailer','Pickup','Refrigerated Truck']),F('plate','License Plate'),F('driver','Driver Name'),F('status','Vehicle Status',['Available','On Route','Maintenance']),F('maint','Maintenance Status',['Good','Service Due','In Service'])]},
+drivers:{k:'drivers',title:'Driver Management',sub:'Driver roster, assignments and availability.',prefix:'DRV',add:'Add Driver',filter:'avail',
+ cols:[['id','Driver ID'],['name','Name'],['phone','Phone'],['vehicle','Vehicle'],['delivery','Delivery Status','b'],['avail','Availability','b']],
+ fields:[F('name','Driver Name'),F('phone','Phone Number',0,'tel'),F('vehicle','Assigned Vehicle'),F('delivery','Delivery Status',['Idle','Delivering','Completed']),F('avail','Availability',['Available','On Trip','Off Duty'])]},
+warehouses:{k:'wh',title:'Warehouse Management',sub:'Inventory levels and inbound/outbound flow.',prefix:'WH',add:'Add Warehouse',
+ cols:[['id','ID'],['name','Warehouse'],['loc','Location'],['products','Total Products','n'],['stock','Available Stock','n'],['incoming','Incoming','n'],['outgoing','Outgoing','n']],
+ fields:[F('name','Warehouse Name'),F('loc','Location'),F('products','Total Products',0,'number'),F('stock','Available Stock',0,'number'),F('incoming','Incoming Shipments',0,'number'),F('outgoing','Outgoing Shipments',0,'number')]},
+customers:{k:'cust',title:'Customer Management',sub:'Accounts, contacts and order history.',prefix:'CUS',add:'Add Customer',
+ cols:[['id','Customer ID'],['name','Full Name'],['email','Email'],['phone','Phone'],['address','Address'],['orders','Orders','n']],
+ fields:[F('name','Full Name'),F('email','Email',0,'email'),F('phone','Phone Number',0,'tel'),F('orders','Order History (orders)',0,'number'),F('address','Address',0,0,1)]}};
+
+function Dash(){const [s]=useStore('ship');const c=x=>s.filter(r=>r.status===x).length;
+ const stats=[['Total Shipments',s.length,'box','#2563eb'],['Pending Deliveries',c('Pending'),'truck','#f59e0b'],['In Transit',c('In Transit'),'pin','#3b82f6'],['Delivered Orders',c('Delivered'),'check','#10b981'],['Cancelled',c('Cancelled'),'x','#ef4444']];
+ return html`<div class="fade"><${Head} t="Dashboard" s="Real-time overview of your logistics operations."><a class="btn" href="#shipments"><${I} n="plus"/> New Shipment</a><//>
+ <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-4">${stats.map(x=>html`<div key=${x[0]} class="card hov"><div class="flex items-center justify-between"><span class="text-xs font-semibold" style=${{color:'var(--mut)'}}>${x[0]}</span><span style=${{color:x[3],background:x[3]+'22',padding:7,borderRadius:9}}><${I} n=${x[2]}/></span></div><div class="text-3xl font-bold mt-3">${x[1]}</div></div>`)}</div>
+ <div class="grid lg:grid-cols-3 gap-4 mb-4"><div class="card lg:col-span-2"><div class="flex justify-between mb-3"><div><b>Revenue Overview</b><div class="text-xs" style=${{color:'var(--mut)'}}>Last 6 months (USD thousands)</div></div><b style=${{color:'var(--acc)'}}>$${RV.reduce((a,b)=>a+b)}K</b></div><${Area} d=${RV} l=${MO}/></div>
+ <div class="card"><b>Shipment Status</b><div class="mt-4"><${Donut} parts=${[{n:'Delivered',v:c('Delivered'),c:'#10b981'},{n:'In Transit',v:c('In Transit'),c:'#2563eb'},{n:'Pending',v:c('Pending'),c:'#f59e0b'},{n:'Cancelled',v:c('Cancelled'),c:'#ef4444'}]}/></div></div></div>
+ <div class="grid lg:grid-cols-3 gap-4"><div class="card"><b>Delivery Performance</b><div class="text-xs mb-3" style=${{color:'var(--mut)'}}>On-time delivery rate</div><${Bars} d=${OT} l=${MO} u="%"/></div>
+ <div class="card lg:col-span-2"><div class="flex justify-between mb-2"><b>Recent Shipments</b><a href="#shipments" class="text-sm" style=${{color:'var(--acc)'}}>View all</a></div><div class="overflow-x-auto"><table><thead><tr><th>ID</th><th>Customer</th><th>Route</th><th>Status</th></tr></thead><tbody>${s.slice(0,6).map(r=>html`<tr key=${r.id}><td><b>${r.id}</b></td><td>${r.customer}</td><td>${r.origin} → ${r.dest}</td><td><${Badge} v=${r.status}/></td></tr>`)}</tbody></table></div></div></div></div>`}
+
+function Track(){const [ships]=useStore('ship'),[v,setV]=useState('SHP-1004'),[res,setRes]=useState(null),[err,setErr]=useState('');
+ const go=id=>{const x=ships.find(r=>r.id.toLowerCase()===id.trim().toLowerCase());setRes(x||null);setErr(x?'':'No shipment found for that tracking number.')};
+ useEffect(()=>{go('SHP-1004')},[]);
+ const steps=['Order Placed','Picked Up','In Transit','Out for Delivery','Delivered'],cnt=res?({Pending:1,'In Transit':3,Delivered:5,Cancelled:1})[res.status]:0;
+ const day=i=>{const d=new Date(res.shipDate+'T00:00');d.setDate(d.getDate()+i);return d.toLocaleDateString('en-US',{month:'short',day:'numeric'})};
+ return html`<div class="fade"><${Head} t="Shipment Tracking" s="Enter a tracking number to see live status."/>
+ <div class="card mb-4"><div class="flex gap-2 flex-wrap"><input class="inp" style=${{flex:1,minWidth:200}} value=${v} placeholder="e.g. SHP-1004" onInput=${e=>setV(e.target.value)} onKeyDown=${e=>e.key==='Enter'&&go(v)}/><button class="btn" onClick=${()=>go(v)}><${I} n="search"/> Track Shipment</button></div>
+ <div class="flex gap-2 flex-wrap mt-3 text-xs items-center" style=${{color:'var(--mut)'}}>Try: ${['SHP-1001','SHP-1002','SHP-1003','SHP-1006'].map(x=>html`<button key=${x} class="bd" style=${{background:'var(--soft)',color:'var(--acc)'}} onClick=${()=>{setV(x);go(x)}}>${x}</button>`)}</div>${err&&html`<p class="mt-3 text-sm" style=${{color:'#ef4444'}}>${err}</p>`}</div>
+ ${res&&html`<div class="grid lg:grid-cols-3 gap-4"><div class="card space-y-3"><div class="flex justify-between"><b>${res.id}</b><${Badge} v=${res.status}/></div>
+ ${[['Customer',res.customer],['Current Location',res.loc||res.origin],['Route',res.origin+' → '+res.dest],['Estimated Arrival',fd(res.eta)]].map(x=>html`<div key=${x[0]}><div class="text-xs" style=${{color:'var(--mut)'}}>${x[0]}</div><div class="font-semibold">${x[1]}</div></div>`)}</div>
+ <div class="card lg:col-span-2"><b>Delivery Progress</b><div style=${{height:8,background:'var(--line)',borderRadius:9,margin:'14px 0 22px'}}><div class="bar" style=${{width:(res.status==='Cancelled'?0:cnt/5*100)+'%',height:8,borderRadius:9,background:'linear-gradient(90deg,#2563eb,#60a5fa)',transition:'width .8s'}}></div></div>
+ ${res.status==='Cancelled'&&html`<p class="mb-3 text-sm" style=${{color:'#ef4444'}}>This shipment was cancelled.</p>`}
+ ${steps.map((s,i)=>html`<div key=${s} class="flex gap-3 items-start" style=${{opacity:i<cnt?1:.45}}><div class="flex flex-col items-center"><span style=${{width:26,height:26,borderRadius:99,display:'flex',alignItems:'center',justifyContent:'center',background:i<cnt?'#2563eb':'var(--line)',color:'#fff',boxShadow:i===cnt-1?'0 0 0 5px rgba(37,99,235,.25)':'none'}}>${i<cnt&&html`<${I} n="check" s=${14}/>`}</span>${i<4&&html`<span style=${{width:2,height:28,background:'var(--line)'}}></span>`}</div><div><div class="font-semibold text-sm">${s}</div><div class="text-xs" style=${{color:'var(--mut)'}}>${i<cnt?day(i):'Expected '+fd(res.eta)}</div></div></div>`)}</div></div>`}</div>`}
+
+function Reports(){const [s]=useStore('ship'),[ex,setEx]=useState(false),[ok,setOk]=useState(false);
+ const csv=['id,customer,origin,destination,ship_date,eta,status',...s.map(r=>[r.id,r.customer,r.origin,r.dest,r.shipDate,r.eta,r.status].join(','))].join('\n');
+ const del=s.filter(r=>r.status==='Delivered').length,rate=Math.round(del/Math.max(1,s.length-s.filter(r=>r.status==='Pending').length)*100);
+ return html`<div class="fade"><${Head} t="Reports & Analytics" s="Performance insights across your network."><button class="btn" onClick=${()=>setEx(true)}><${I} n="dl"/> Export Report</button><//>
+ <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">${[['Shipments (Nov)',SH[5],'box'],['Success Rate',rate+'%','check'],['Revenue (Nov)','$'+RV[5]+'K','dollar'],['Avg. On-time',Math.round(OT.reduce((a,b)=>a+b)/6)+'%','truck']].map(x=>html`<div key=${x[0]} class="card hov"><div class="flex justify-between text-xs" style=${{color:'var(--mut)'}}>${x[0]}<${I} n=${x[2]} s=${16}/></div><div class="text-2xl font-bold mt-2">${x[1]}</div></div>`)}</div>
+ <div class="grid lg:grid-cols-2 gap-4"><div class="card"><b>Monthly Shipments</b><div class="mt-3"><${Bars} d=${SH} l=${MO}/></div></div><div class="card"><b>Revenue Statistics ($K)</b><div class="mt-3"><${Area} d=${RV} l=${MO}/></div></div>
+ <div class="card"><b>Delivery Success Rate</b><div class="mt-4"><${Donut} parts=${[{n:'Delivered',v:del,c:'#10b981'},{n:'In Transit',v:s.filter(r=>r.status==='In Transit').length,c:'#2563eb'},{n:'Cancelled',v:s.filter(r=>r.status==='Cancelled').length,c:'#ef4444'}]}/></div></div>
+ <div class="card"><b>Shipment Performance</b><div class="mt-3 space-y-3">${[['On-time delivery',96,'#10b981'],['Fleet utilisation',82,'#2563eb'],['Warehouse capacity',71,'#f59e0b'],['Customer satisfaction',93,'#60a5fa']].map(x=>html`<div key=${x[0]}><div class="flex justify-between text-sm mb-1"><span>${x[0]}</span><b>${x[1]}%</b></div><div style=${{height:8,background:'var(--line)',borderRadius:9}}><div style=${{width:x[1]+'%',height:8,borderRadius:9,background:x[2]}}></div></div></div>`)}</div></div></div>
+ ${ex&&html`<${Modal} t="Export Report" onClose=${()=>{setEx(false);setOk(false)}}><label class="lbl">Format</label><select class="inp mb-3"><option>CSV (shipments)</option><option>PDF summary</option><option>Excel workbook</option></select><label class="lbl">Preview (CSV)</label><textarea class="inp" rows="7" readOnly value=${csv}></textarea><div class="flex justify-end gap-2 mt-3"><button class="btn" onClick=${()=>{try{navigator.clipboard.writeText(csv)}catch(e){}setOk(true)}}>${ok?'Copied to clipboard':'Copy report data'}</button></div><//>`}</div>`}
+
+function Settings(){const [c,setC]=useStore('set'),[ok,setOk]=useState(false);const u=(k,v)=>{setC({...c,[k]:v});setOk(false)};
+ const In=([k,l,t])=>html`<div key=${k}><label class="lbl">${l}</label><input class="inp" type=${t||'text'} value=${c[k]} onInput=${e=>u(k,e.target.value)}/></div>`;
+ const Tg=([k,l])=>html`<label key=${k} class="flex items-center justify-between py-2 cursor-pointer text-sm">${l}<span onClick=${()=>u(k,!c[k])} style=${{width:42,height:24,borderRadius:99,background:c[k]?'#2563eb':'var(--line)',position:'relative',transition:'background .2s'}}><span style=${{position:'absolute',top:3,left:c[k]?21:3,width:18,height:18,borderRadius:99,background:'#fff',transition:'left .2s'}}></span></span></label>`;
+ return html`<div class="fade"><${Head} t="Settings" s="Manage your profile, company and preferences."><button class="btn" onClick=${()=>setOk(true)}><${I} n="check"/> ${ok?'Saved':'Save Changes'}</button><//>
+ <div class="grid lg:grid-cols-2 gap-4"><div class="card"><b>User Profile</b><div class="grid sm:grid-cols-2 gap-3 mt-3">${[['name','Full Name'],['email','Email','email'],['role','Role']].map(In)}</div></div>
+ <div class="card"><b>Company Information</b><div class="grid sm:grid-cols-2 gap-3 mt-3">${[['company','Company Name'],['tax','Tax ID'],['addr','Address']].map(In)}</div></div>
+ <div class="card"><b>Notification Settings</b><div class="mt-2">${[['n1','Shipment status updates'],['n2','Delivery delay alerts'],['n3','Weekly performance digest'],['n4','Maintenance reminders']].map(Tg)}</div></div>
+ <div class="card"><b>Theme Settings</b><div class="flex gap-2 mt-3 flex-wrap">${['light','dark','auto'].map(t=>html`<button key=${t} class=${'btn '+(c.theme===t?'':'g')} style=${{textTransform:'capitalize'}} onClick=${()=>u('theme',t)}>${t==='auto'?'System':t}</button>`)}</div><p class="text-xs mt-3" style=${{color:'var(--mut)'}}>Your choice is stored in this browser.</p></div></div></div>`}
+
+const NAV=[['dashboard','Dashboard','d'],['shipments','Shipments','box'],['tracking','Tracking','pin'],['orders','Orders','cart'],['fleet','Fleet','truck'],['drivers','Drivers','user'],['warehouses','Warehouses','wh'],['customers','Customers','users'],['reports','Reports','chart'],['settings','Settings','gear']];
+function App(){const [r,setR]=useState(location.hash.slice(1)||'dashboard'),[o,setO]=useState(false),[set]=useStore('set');
+ useEffect(()=>{const h=()=>{setR(location.hash.slice(1)||'dashboard');setO(false);window.scrollTo(0,0)};addEventListener('hashchange',h);return()=>removeEventListener('hashchange',h)},[]);
+ useEffect(()=>{const d=document.documentElement;set.theme==='auto'?d.removeAttribute('data-theme'):d.setAttribute('data-theme',set.theme)},[set.theme]);
+ const pg=r==='dashboard'?html`<${Dash}/>`:r==='tracking'?html`<${Track}/>`:r==='reports'?html`<${Reports}/>`:r==='settings'?html`<${Settings}/>`:CFG[r]?html`<${Crud} key=${r} ...${CFG[r]}/>`:html`<${Dash}/>`;
+ return html`<div>
+ <aside class="side fixed top-0 left-0 bottom-0 z-40 w-64 p-4 flex flex-col lg:translate-x-0" style=${{transform:o?'none':undefined,paddingTop:'calc(16px + env(safe-area-inset-top,0px))'}} data-open=${o}>
+ <div class="flex items-center gap-3 px-2 mb-6 text-white"><span style=${{background:'#2563eb',padding:8,borderRadius:10}}><${I} n="truck" s=${20}/></span><div><div class="font-bold leading-tight">LogiTrack</div><div style=${{fontSize:11,color:'#8ea2cc'}}>Logistics Management</div></div></div>
+ <nav class="space-y-1 overflow-y-auto">${NAV.map(n=>html`<a key=${n[0]} href=${'#'+n[0]} class=${'nv '+(r===n[0]?'on':'')}><${I} n=${n[2]==='d'?'d':n[2]}/>${n[1]}</a>`)}</nav>
+ <div class="mt-auto text-xs px-2 pt-4" style=${{color:'#8ea2cc'}}>© 2026 TransAsia Freight</div></aside>
+ ${o&&html`<div class="fixed inset-0 z-30 lg:hidden" style=${{background:'rgba(5,10,25,.5)'}} onClick=${()=>setO(false)}></div>`}
+ <div class="lg:ml-64"><header class="sticky z-20 flex items-center gap-3 px-4 py-3" style=${{top:'env(safe-area-inset-top,0px)',background:'var(--card)',borderBottom:'1px solid var(--line)'}}>
+ <button class="lg:hidden" onClick=${()=>setO(!o)}><${I} n="menu" s=${22}/></button><div class="font-semibold flex-1 capitalize">${(NAV.find(n=>n[0]===r)||NAV[0])[1]}</div>
+ <a href="#settings" class="btn g" style=${{padding:'8px'}} title="Notifications"><${I} n="bell"/></a><a href="#settings" class="flex items-center gap-2 text-sm font-semibold"><span style=${{background:'#2563eb',color:'#fff',width:32,height:32,borderRadius:99,display:'flex',alignItems:'center',justifyContent:'center'}}>${set.name.split(' ').map(x=>x[0]).join('').slice(0,2)}</span><span class="hidden sm:inline">${set.name}</span></a></header>
+ <main class="p-4 sm:p-6 mx-auto" style=${{maxWidth:1400}}>${pg}</main></div></div>`}
+ReactDOM.createRoot(document.getElementById('root')).render(html`<${App}/>`);
+</script>
+<style>@media (max-width:1023px){.side{transform:translateX(-100%)}.side[data-open="true"]{transform:none!important}}</style>
+</body></html>
